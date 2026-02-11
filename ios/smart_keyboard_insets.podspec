@@ -9,9 +9,9 @@ Pod::Spec.new do |s|
   s.description      = <<-DESC
 A Flutter plugin that provides accurate keyboard height and safe area bottom inset detection on iOS.
                        DESC
-  s.homepage         = 'https://github.com/example/smart_keyboard_insets'
+  s.homepage         = 'https://github.com/rishi115/smart_keyboard_insets'
   s.license          = { :file => '../LICENSE' }
-  s.author           = { 'Your Company' => 'email@example.com' }
+  s.author           = { 'rishi115' => 'rishidevare051@gmail.com' }
   s.source           = { :path => '.' }
   s.source_files     = 'Classes/**/*'
   s.dependency 'Flutter'
