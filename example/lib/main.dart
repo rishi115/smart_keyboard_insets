@@ -33,7 +33,11 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  final FocusNode _focusNode = FocusNode();
   StreamSubscription<KeyboardMetrics>? _subscription;
+  
+  bool _showStickerPanel = false;
+  double _lastKeyboardHeight = 300; // Default height for sticker panel
 
   // Dummy messages for demonstration
   final List<String> _messages = [
@@ -44,16 +48,21 @@ class _ChatScreenState extends State<ChatScreen> {
     'This plugin makes it even easier.',
     'Totally agree! No more manual calculations.',
     'The animation is smooth too.',
-    'Let me try typing something...',
+    'Try the sticker button! 👇',
   ];
 
   @override
   void initState() {
     super.initState();
     // Initialize the stream listener to start receiving keyboard updates
-    _subscription = SmartKeyboardInsets.instance.metricsStream.listen((_) {
-      // Stream subscription keeps the plugin active
-      // With reverse: true, the list stays anchored at bottom automatically
+    _subscription = SmartKeyboardInsets.instance.metricsStream.listen((metrics) {
+      // Store keyboard height for sticker panel sizing
+      if (metrics.isKeyboardVisible && metrics.keyboardHeight > 0) {
+        setState(() {
+          _lastKeyboardHeight = metrics.keyboardHeight;
+          _showStickerPanel = false; // Hide sticker panel when keyboard opens
+        });
+      }
     });
   }
 
@@ -62,32 +71,33 @@ class _ChatScreenState extends State<ChatScreen> {
     _subscription?.cancel();
     _textController.dispose();
     _scrollController.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
-  void _sendMessage() {
-    if (_textController.text.trim().isNotEmpty) {
+  void _sendMessage([String? emoji]) {
+    final text = emoji ?? _textController.text.trim();
+    if (text.isNotEmpty) {
       setState(() {
-        _messages.add(_textController.text.trim());
+        _messages.add(text);
       });
-      _textController.clear();
-      // Scroll to bottom after adding message
-      Future.delayed(const Duration(milliseconds: 50), () {
-        if (_scrollController.hasClients) {
-          _scrollController.animateTo(
-            _scrollController.position.maxScrollExtent,
-            duration: const Duration(milliseconds: 200),
-            curve: Curves.easeOut,
-          );
-        }
-      });
+      if (emoji == null) _textController.clear();
+    }
+  }
+
+  void _toggleStickerPanel() {
+    if (_showStickerPanel) {
+      setState(() => _showStickerPanel = false);
+      _focusNode.requestFocus();
+    } else {
+      _focusNode.unfocus();
+      setState(() => _showStickerPanel = true);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Disable default keyboard avoidance - we handle it with AnimatedKeyboardPadding
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: const Text('Chat Demo'),
@@ -95,9 +105,7 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
       body: Column(
         children: [
-          // Debug overlay showing live metrics
           _buildDebugOverlay(),
-          // Message list
           Expanded(
             child: ListView.builder(
               controller: _scrollController,
@@ -105,32 +113,62 @@ class _ChatScreenState extends State<ChatScreen> {
               padding: const EdgeInsets.all(16),
               itemCount: _messages.length,
               itemBuilder: (context, index) {
-                final isMe = index % 2 == 1;
-                return _buildMessageBubble(_messages[index], isMe);
+                final actualIndex = _messages.length - 1 - index;
+                final isMe = actualIndex % 2 == 1;
+                return _buildMessageBubble(_messages[actualIndex], isMe);
               },
             ),
           ),
-          // Bottom composer with AnimatedKeyboardPadding
-          AnimatedKeyboardPadding(
-            duration: const Duration(milliseconds: 250),
-            curve: Curves.easeOut,
-            child: Container(
+          // Composer + Sticker Panel
+          _buildBottomArea(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBottomArea() {
+    return ValueListenableBuilder<KeyboardMetrics>(
+      valueListenable: SmartKeyboardInsets.instance.metricsNotifier,
+      builder: (context, metrics, child) {
+        // Calculate bottom padding
+        double bottomPadding = 0;
+        if (metrics.isKeyboardVisible) {
+          bottomPadding = metrics.keyboardHeight;
+        } else if (_showStickerPanel) {
+          bottomPadding = 0; // Sticker panel handles its own height
+        } else {
+          bottomPadding = metrics.safeAreaBottom;
+        }
+
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Composer
+            Container(
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.surface,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: Colors.black.withValues(alpha: 0.1),
                     blurRadius: 4,
                     offset: const Offset(0, -2),
                   ),
                 ],
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
               child: Row(
                 children: [
+                  // Sticker/Emoji button
+                  IconButton(
+                    onPressed: _toggleStickerPanel,
+                    icon: Icon(
+                      _showStickerPanel ? Icons.keyboard : Icons.emoji_emotions_outlined,
+                    ),
+                  ),
                   Expanded(
                     child: TextField(
                       controller: _textController,
+                      focusNode: _focusNode,
                       decoration: InputDecoration(
                         hintText: 'Type a message...',
                         border: OutlineInputBorder(
@@ -141,22 +179,95 @@ class _ChatScreenState extends State<ChatScreen> {
                           vertical: 8,
                         ),
                       ),
+                      onTap: () {
+                        if (_showStickerPanel) {
+                          setState(() => _showStickerPanel = false);
+                        }
+                      },
                       onSubmitted: (_) => _sendMessage(),
                     ),
                   ),
                   const SizedBox(width: 8),
                   IconButton.filled(
-                    onPressed: _sendMessage,
+                    onPressed: () => _sendMessage(),
                     icon: const Icon(Icons.send),
                   ),
                 ],
               ),
+            ),
+            // Sticker Panel - uses keyboard height!
+            if (_showStickerPanel) _buildStickerPanel(),
+            // Bottom padding for keyboard or safe area
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.easeOut,
+              height: bottomPadding,
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildStickerPanel() {
+    // Use the last known keyboard height for consistent UX
+    final panelHeight = _lastKeyboardHeight > 0 ? _lastKeyboardHeight : 300.0;
+    
+    return Container(
+      height: panelHeight,
+      color: Colors.grey.shade100,
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8),
+            child: Text(
+              'Sticker Panel (height: ${panelHeight.toStringAsFixed(0)})',
+              style: TextStyle(
+                color: Colors.grey.shade600,
+                fontSize: 12,
+              ),
+            ),
+          ),
+          Expanded(
+            child: GridView.builder(
+              padding: const EdgeInsets.all(8),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 8,
+                mainAxisSpacing: 8,
+                crossAxisSpacing: 8,
+              ),
+              itemCount: _emojis.length,
+              itemBuilder: (context, index) {
+                return GestureDetector(
+                  onTap: () => _sendMessage(_emojis[index]),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      _emojis[index],
+                      style: const TextStyle(fontSize: 24),
+                    ),
+                  ),
+                );
+              },
             ),
           ),
         ],
       ),
     );
   }
+
+  static const _emojis = [
+    '😀', '😃', '😄', '😁', '😅', '😂', '🤣', '😊',
+    '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘',
+    '😗', '😙', '😚', '😋', '😛', '😜', '🤪', '😝',
+    '🤑', '🤗', '🤭', '🤫', '🤔', '🤐', '🤨', '😐',
+    '😑', '😶', '😏', '😒', '🙄', '😬', '🤥', '😌',
+    '👍', '👎', '👏', '🙌', '🤝', '🙏', '❤️', '🔥',
+  ];
 
   Widget _buildDebugOverlay() {
     return ValueListenableBuilder<KeyboardMetrics>(

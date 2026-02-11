@@ -1,9 +1,9 @@
 name: smart_keyboard_insets
 description: A Flutter plugin that provides accurate keyboard height and safe area bottom inset detection on Android and iOS. Perfect for chat apps.
 version: 0.0.1
-homepage: https://github.com/example/smart_keyboard_insets
-repository: https://github.com/example/smart_keyboard_insets
-issue_tracker: https://github.com/example/smart_keyboard_insets/issues
+homepage: https://github.com/rishi115/smart_keyboard_insets
+repository: https://github.com/rishi115/smart_keyboard_insets
+issue_tracker: https://github.com/rishi115/smart_keyboard_insets/issues
 
 topics:
   - keyboard
