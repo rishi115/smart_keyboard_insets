@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- **Fix:** `KeyboardPadding`, `AnimatedKeyboardPadding` and `metricsNotifier` now update on their own on Android and iOS. Previously they stayed at 0 unless something was listening to `metricsStream`.
+- Example app: switching between the keyboard and the sticker panel no longer overflows
+- Real unit and widget tests, and GitHub Actions CI
+
 ## 0.1.1
 
 - README: demo GIF, comparison with `MediaQuery.viewInsets`, and badges

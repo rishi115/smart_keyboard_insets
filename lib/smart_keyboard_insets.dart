@@ -3,6 +3,7 @@
 library smart_keyboard_insets;
 
 import 'dart:async';
+import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -58,6 +59,14 @@ class SmartKeyboardInsets {
   /// Cached broadcast stream for keyboard metrics.
   Stream<KeyboardMetrics>? _metricsStream;
 
+  /// Internal subscription that keeps [metricsNotifier] up to date.
+  StreamSubscription<KeyboardMetrics>? _notifierSubscription;
+
+  /// Lets tests turn on the automatic [metricsStream] subscription that
+  /// [metricsNotifier] normally only starts on Android and iOS.
+  @visibleForTesting
+  static bool debugAutoSubscribeOnAnyPlatform = false;
+
   /// ValueNotifier for keyboard metrics, initialized with hidden state.
   final ValueNotifier<KeyboardMetrics> _metricsNotifier =
       ValueNotifier(KeyboardMetrics.hidden);
@@ -90,9 +99,28 @@ class SmartKeyboardInsets {
   /// Use this with [ValueListenableBuilder] for efficient widget rebuilds
   /// when keyboard metrics change.
   ///
-  /// The notifier is initialized with [KeyboardMetrics.hidden] and is
-  /// automatically updated when [metricsStream] emits new events.
-  ValueNotifier<KeyboardMetrics> get metricsNotifier => _metricsNotifier;
+  /// The notifier is initialized with [KeyboardMetrics.hidden]. On Android
+  /// and iOS, the first access starts listening for keyboard events, so the
+  /// notifier (and [KeyboardPadding] / [AnimatedKeyboardPadding], which read
+  /// it) stays up to date without subscribing to [metricsStream] yourself.
+  ValueNotifier<KeyboardMetrics> get metricsNotifier {
+    _ensureNotifierSubscription();
+    return _metricsNotifier;
+  }
+
+  void _ensureNotifierSubscription() {
+    if (_notifierSubscription != null) return;
+    // Other platforms (web, desktop, `flutter test`) have no native side, and
+    // listening there would report a MissingPluginException.
+    final supported = debugAutoSubscribeOnAnyPlatform ||
+        (!kIsWeb && (Platform.isAndroid || Platform.isIOS));
+    if (!supported) return;
+    _notifierSubscription = metricsStream.listen(
+      null,
+      onError: (Object error) =>
+          debugPrint('SmartKeyboardInsets: keyboard event error: $error'),
+    );
+  }
 
   /// Gets the current keyboard metrics on demand.
   ///

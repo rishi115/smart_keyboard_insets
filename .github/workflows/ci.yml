@@ -39,6 +39,9 @@ jobs:
         working-directory: example
         run: flutter test
 
+      - name: Show files changed by the toolchain
+        run: git status --porcelain && git diff
+
       - name: Validate package for pub.dev
         run: flutter pub publish --dry-run
 
