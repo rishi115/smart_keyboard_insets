@@ -1,6 +1,7 @@
 # Smart Keyboard Insets
 
 [![pub package](https://img.shields.io/pub/v/smart_keyboard_insets.svg)](https://pub.dev/packages/smart_keyboard_insets)
+[![CI](https://github.com/rishi115/smart_keyboard_insets/actions/workflows/ci.yml/badge.svg)](https://github.com/rishi115/smart_keyboard_insets/actions/workflows/ci.yml)
 [![pub points](https://img.shields.io/pub/points/smart_keyboard_insets)](https://pub.dev/packages/smart_keyboard_insets/score)
 [![pub likes](https://img.shields.io/pub/likes/smart_keyboard_insets)](https://pub.dev/packages/smart_keyboard_insets/score)
 [![platform](https://img.shields.io/badge/platform-android%20%7C%20ios-blue)](https://pub.dev/packages/smart_keyboard_insets)

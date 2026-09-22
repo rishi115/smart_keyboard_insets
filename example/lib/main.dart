@@ -36,7 +36,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final ScrollController _scrollController = ScrollController();
   final FocusNode _focusNode = FocusNode();
   StreamSubscription<KeyboardMetrics>? _subscription;
-  
+
   bool _showStickerPanel = false;
   double _lastKeyboardHeight = 300; // Default height for sticker panel
 
@@ -56,7 +56,9 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
     // Initialize the stream listener to start receiving keyboard updates
-    _subscription = SmartKeyboardInsets.instance.metricsStream.listen((metrics) {
+    _subscription = SmartKeyboardInsets.instance.metricsStream.listen((
+      metrics,
+    ) {
       // Store keyboard height for sticker panel sizing
       if (metrics.isKeyboardVisible && metrics.keyboardHeight > 0) {
         setState(() {
@@ -88,12 +90,30 @@ class _ChatScreenState extends State<ChatScreen> {
 
   void _toggleStickerPanel() {
     if (_showStickerPanel) {
-      setState(() => _showStickerPanel = false);
-      _focusNode.requestFocus();
+      _switchToKeyboard();
     } else {
       _focusNode.unfocus();
       setState(() => _showStickerPanel = true);
     }
+  }
+
+  /// Keeps the sticker panel on screen until the keyboard reports it is
+  /// visible (the stream listener then hides the panel), so the composer
+  /// doesn't drop down and jump back up while the keyboard is opening.
+  void _switchToKeyboard() {
+    _focusNode.requestFocus();
+    Future.delayed(const Duration(milliseconds: 600), () {
+      // Fallback for when no software keyboard appears (e.g. a hardware keyboard).
+      if (mounted &&
+          _showStickerPanel &&
+          !SmartKeyboardInsets
+              .instance
+              .metricsNotifier
+              .value
+              .isKeyboardVisible) {
+        setState(() => _showStickerPanel = false);
+      }
+    });
   }
 
   @override
@@ -131,14 +151,15 @@ class _ChatScreenState extends State<ChatScreen> {
     return ValueListenableBuilder<KeyboardMetrics>(
       valueListenable: SmartKeyboardInsets.instance.metricsNotifier,
       builder: (context, metrics, child) {
-        // Calculate bottom padding
-        double bottomPadding = 0;
-        if (metrics.isKeyboardVisible) {
-          bottomPadding = metrics.keyboardHeight;
-        } else if (_showStickerPanel) {
-          bottomPadding = 0; // Sticker panel handles its own height
+        // The sticker panel and the keyboard share one bottom slot, so
+        // switching between them never stacks both heights.
+        final double bottomHeight;
+        if (_showStickerPanel) {
+          bottomHeight = _stickerPanelHeight;
+        } else if (metrics.isKeyboardVisible) {
+          bottomHeight = metrics.keyboardHeight;
         } else {
-          bottomPadding = metrics.safeAreaBottom;
+          bottomHeight = metrics.safeAreaBottom;
         }
 
         return Column(
@@ -163,7 +184,9 @@ class _ChatScreenState extends State<ChatScreen> {
                   IconButton(
                     onPressed: _toggleStickerPanel,
                     icon: Icon(
-                      _showStickerPanel ? Icons.keyboard : Icons.emoji_emotions_outlined,
+                      _showStickerPanel
+                          ? Icons.keyboard
+                          : Icons.emoji_emotions_outlined,
                     ),
                   ),
                   Expanded(
@@ -181,9 +204,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         ),
                       ),
                       onTap: () {
-                        if (_showStickerPanel) {
-                          setState(() => _showStickerPanel = false);
-                        }
+                        if (_showStickerPanel) _switchToKeyboard();
                       },
                       onSubmitted: (_) => _sendMessage(),
                     ),
@@ -196,13 +217,21 @@ class _ChatScreenState extends State<ChatScreen> {
                 ],
               ),
             ),
-            // Sticker Panel - uses keyboard height!
-            if (_showStickerPanel) _buildStickerPanel(),
-            // Bottom padding for keyboard or safe area
+            // Bottom slot: sticker panel, keyboard space, or safe area
             AnimatedContainer(
               duration: const Duration(milliseconds: 250),
               curve: Curves.easeOut,
-              height: bottomPadding,
+              height: bottomHeight,
+              clipBehavior: Clip.hardEdge,
+              decoration: const BoxDecoration(),
+              child: _showStickerPanel
+                  ? OverflowBox(
+                      alignment: Alignment.topCenter,
+                      minHeight: _stickerPanelHeight,
+                      maxHeight: _stickerPanelHeight,
+                      child: _buildStickerPanel(),
+                    )
+                  : null,
             ),
           ],
         );
@@ -210,10 +239,13 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
+  // Use the last known keyboard height for consistent UX
+  double get _stickerPanelHeight =>
+      _lastKeyboardHeight > 0 ? _lastKeyboardHeight : 300.0;
+
   Widget _buildStickerPanel() {
-    // Use the last known keyboard height for consistent UX
-    final panelHeight = _lastKeyboardHeight > 0 ? _lastKeyboardHeight : 300.0;
-    
+    final panelHeight = _stickerPanelHeight;
+
     return Container(
       height: panelHeight,
       color: Colors.grey.shade100,
@@ -223,10 +255,7 @@ class _ChatScreenState extends State<ChatScreen> {
             padding: const EdgeInsets.all(8),
             child: Text(
               'Sticker Panel (height: ${panelHeight.toStringAsFixed(0)})',
-              style: TextStyle(
-                color: Colors.grey.shade600,
-                fontSize: 12,
-              ),
+              style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
             ),
           ),
           Expanded(
@@ -262,12 +291,54 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   static const _emojis = [
-    '😀', '😃', '😄', '😁', '😅', '😂', '🤣', '😊',
-    '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘',
-    '😗', '😙', '😚', '😋', '😛', '😜', '🤪', '😝',
-    '🤑', '🤗', '🤭', '🤫', '🤔', '🤐', '🤨', '😐',
-    '😑', '😶', '😏', '😒', '🙄', '😬', '🤥', '😌',
-    '👍', '👎', '👏', '🙌', '🤝', '🙏', '❤️', '🔥',
+    '😀',
+    '😃',
+    '😄',
+    '😁',
+    '😅',
+    '😂',
+    '🤣',
+    '😊',
+    '😇',
+    '🙂',
+    '🙃',
+    '😉',
+    '😌',
+    '😍',
+    '🥰',
+    '😘',
+    '😗',
+    '😙',
+    '😚',
+    '😋',
+    '😛',
+    '😜',
+    '🤪',
+    '😝',
+    '🤑',
+    '🤗',
+    '🤭',
+    '🤫',
+    '🤔',
+    '🤐',
+    '🤨',
+    '😐',
+    '😑',
+    '😶',
+    '😏',
+    '😒',
+    '🙄',
+    '😬',
+    '🤥',
+    '😌',
+    '👍',
+    '👎',
+    '👏',
+    '🙌',
+    '🤝',
+    '🙏',
+    '❤️',
+    '🔥',
   ];
 
   Widget _buildDebugOverlay() {
@@ -304,9 +375,7 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
         child: Text(
           message,
-          style: TextStyle(
-            color: isMe ? Colors.white : Colors.black87,
-          ),
+          style: TextStyle(color: isMe ? Colors.white : Colors.black87),
         ),
       ),
     );

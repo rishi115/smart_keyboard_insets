@@ -75,13 +75,13 @@ class SmartKeyboardInsets {
   Stream<KeyboardMetrics> get metricsStream {
     _metricsStream ??= _eventChannel
         .receiveBroadcastStream()
-        .map((event) => KeyboardMetrics.fromMap(Map<String, dynamic>.from(event as Map)))
+        .map((event) =>
+            KeyboardMetrics.fromMap(Map<String, dynamic>.from(event as Map)))
         .map((metrics) {
-          // Update the ValueNotifier with each new event
-          _metricsNotifier.value = metrics;
-          return metrics;
-        })
-        .asBroadcastStream();
+      // Update the ValueNotifier with each new event
+      _metricsNotifier.value = metrics;
+      return metrics;
+    }).asBroadcastStream();
     return _metricsStream!;
   }
 
@@ -102,8 +102,8 @@ class SmartKeyboardInsets {
   /// Returns [KeyboardMetrics.hidden] if the platform query fails.
   Future<KeyboardMetrics> getCurrentMetrics() async {
     try {
-      final result =
-          await _methodChannel.invokeMethod<Map<dynamic, dynamic>>('getCurrentMetrics');
+      final result = await _methodChannel
+          .invokeMethod<Map<dynamic, dynamic>>('getCurrentMetrics');
       if (result != null) {
         return KeyboardMetrics.fromMap(Map<String, dynamic>.from(result));
       }
