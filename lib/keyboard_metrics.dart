@@ -1,3 +1,7 @@
+/// Provides [KeyboardMetrics], the immutable snapshot of keyboard height,
+/// safe area bottom inset, and visibility.
+library;
+
 /// Immutable data class representing keyboard state metrics.
 ///
 /// This class contains information about the current keyboard state including

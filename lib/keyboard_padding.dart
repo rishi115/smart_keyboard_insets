@@ -1,3 +1,7 @@
+/// Provides [KeyboardPadding], a widget that applies bottom padding matching
+/// the keyboard height or the safe area bottom inset.
+library;
+
 import 'package:flutter/widgets.dart';
 
 import 'smart_keyboard_insets.dart';

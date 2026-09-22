@@ -1,3 +1,7 @@
+/// Provides [AnimatedKeyboardPadding], a widget that smoothly animates bottom
+/// padding as the keyboard opens and closes.
+library;
+
 import 'package:flutter/widgets.dart';
 
 import 'smart_keyboard_insets.dart';

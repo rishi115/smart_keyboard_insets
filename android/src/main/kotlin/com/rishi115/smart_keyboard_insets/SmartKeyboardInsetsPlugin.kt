@@ -1,4 +1,4 @@
-package com.example.smart_keyboard_insets
+package com.rishi115.smart_keyboard_insets
 
 import android.app.Activity
 import android.graphics.Rect

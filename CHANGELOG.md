@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.0
+
+- Changed Android package from `com.example.smart_keyboard_insets` to `com.rishi115.smart_keyboard_insets`
+- Filled in LICENSE copyright holder and year
+- Added library-level documentation for `keyboard_metrics`, `keyboard_padding`, and `animated_keyboard_padding`
+
 ## 0.0.1
 
 - Initial release
