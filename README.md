@@ -1,20 +1,32 @@
 # Smart Keyboard Insets
 
 [![pub package](https://img.shields.io/pub/v/smart_keyboard_insets.svg)](https://pub.dev/packages/smart_keyboard_insets)
+[![pub points](https://img.shields.io/pub/points/smart_keyboard_insets)](https://pub.dev/packages/smart_keyboard_insets/score)
+[![pub likes](https://img.shields.io/pub/likes/smart_keyboard_insets)](https://pub.dev/packages/smart_keyboard_insets/score)
+[![platform](https://img.shields.io/badge/platform-android%20%7C%20ios-blue)](https://pub.dev/packages/smart_keyboard_insets)
 [![GitHub](https://img.shields.io/github/license/rishi115/smart_keyboard_insets)](https://github.com/rishi115/smart_keyboard_insets/blob/main/LICENSE)
 
-A Flutter plugin that provides accurate keyboard height and safe area bottom inset detection on Android and iOS. Perfect for chat apps and any UI that needs to respond to keyboard state changes.
+A Flutter plugin that provides accurate keyboard height and safe area bottom inset detection on Android and iOS. Built for chat apps: composers that sit right on top of the keyboard, and sticker/emoji panels that open at exactly the keyboard's height.
 
-## Why Use This Plugin?
+<p align="center">
+  <img src="https://raw.githubusercontent.com/rishi115/smart_keyboard_insets/main/doc/demo.gif" alt="Chat composer following the keyboard, then swapping to a sticker panel of the same height" width="300">
+</p>
 
-- **Smooth UI transitions** - No more janky or laggy list scrolling when keyboard opens/closes
-- **Sticker/Emoji keyboard support** - Get accurate height for custom keyboards, sticker panels, and emoji pickers
-- **Real-time updates** - Know the exact keyboard height as it animates, not just when fully open
-- **Works with any keyboard type** - System keyboard, third-party keyboards, custom input panels
+## Why not just use `MediaQuery.viewInsets`?
+
+For a simple form, `MediaQuery.viewInsets.bottom` is fine. Chat UIs need more:
+
+| | `MediaQuery.viewInsets` | `smart_keyboard_insets` |
+|---|---|---|
+| Final keyboard height | Only known once the open animation finishes | Reported as the keyboard starts to open (iOS), and on every layout change (Android) |
+| Sizing a sticker/emoji panel to match the keyboard | Height drops to 0 as soon as the keyboard closes, so the panel jumps | Remember the last `keyboardHeight` and open the panel at exactly that size |
+| Safe area when the keyboard is hidden | Combine `viewInsets` and `viewPadding` yourself | `safeAreaBottom` included in the same `KeyboardMetrics` |
+| Access outside `build()` | Needs a `BuildContext` | `Stream`, `ValueNotifier`, or a one-time `getCurrentMetrics()` call |
+| Ready-made widgets | None | `KeyboardPadding` and `AnimatedKeyboardPadding` |
 
 ## Features
 
-- Real-time keyboard height detection during animation
+- Keyboard height as soon as the keyboard starts to appear, not after it settles
 - Safe area bottom inset calculation
 - Works with gesture navigation and 3-button navigation on Android
 - Smooth animated transitions with `AnimatedKeyboardPadding`
@@ -28,7 +40,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  smart_keyboard_insets: ^0.0.1
+  smart_keyboard_insets: ^0.1.0
 ```
 
 ## Usage

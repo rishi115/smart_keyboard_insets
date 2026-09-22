@@ -12,6 +12,10 @@ topics:
   - chat
   - ui
 
+screenshots:
+  - description: Chat composer following the keyboard, then swapping to a sticker panel of the same height.
+    path: doc/demo.gif
+
 environment:
   sdk: '>=3.0.0 <4.0.0'
   flutter: '>=3.10.0'
