@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.1
+
+- README: demo GIF, comparison with `MediaQuery.viewInsets`, and badges
+- Added a pub.dev screenshot
+- Example app: hide the debug banner
+
 ## 0.1.0
 
 - Changed Android package from `com.example.smart_keyboard_insets` to `com.rishi115.smart_keyboard_insets`
