@@ -4,7 +4,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'smart_keyboard_insets'
-  s.version          = '0.0.1'
+  s.version          = '0.3.0'
   s.summary          = 'A Flutter plugin for accurate keyboard height and safe area detection.'
   s.description      = <<-DESC
 A Flutter plugin that provides accurate keyboard height and safe area bottom inset detection on iOS.

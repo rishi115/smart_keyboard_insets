@@ -81,22 +81,27 @@ void main() {
     });
   });
 
-  test('metricsStream emits platform events and updates metricsNotifier',
-      () async {
-    messenger.setMockStreamHandler(
-      _eventChannel,
-      MockStreamHandler.inline(onListen: (arguments, events) {
-        events.success(_open.toMap());
-        events.success(_closed.toMap());
-      }),
-    );
+  test(
+    'metricsStream emits platform events and updates metricsNotifier',
+    () async {
+      messenger.setMockStreamHandler(
+        _eventChannel,
+        MockStreamHandler.inline(
+          onListen: (arguments, events) {
+            events.success(_open.toMap());
+            events.success(_closed.toMap());
+          },
+        ),
+      );
 
-    final received =
-        await SmartKeyboardInsets.instance.metricsStream.take(2).toList();
+      final received = await SmartKeyboardInsets.instance.metricsStream
+          .take(2)
+          .toList();
 
-    expect(received, [_open, _closed]);
-    expect(SmartKeyboardInsets.instance.metricsNotifier.value, _closed);
-  });
+      expect(received, [_open, _closed]);
+      expect(SmartKeyboardInsets.instance.metricsNotifier.value, _closed);
+    },
+  );
 
   group('padding widgets', () {
     double bottomPadding(WidgetTester tester, Type paddingType) {
@@ -110,8 +115,9 @@ void main() {
       return padding.resolve(TextDirection.ltr).bottom;
     }
 
-    testWidgets('KeyboardPadding uses keyboard height or safe area',
-        (tester) async {
+    testWidgets('KeyboardPadding uses keyboard height or safe area', (
+      tester,
+    ) async {
       final notifier = SmartKeyboardInsets.instance.metricsNotifier;
       await tester.pumpWidget(
         const KeyboardPadding(child: SizedBox(key: Key('child'))),
@@ -127,8 +133,9 @@ void main() {
       expect(bottomPadding(tester, Padding), 34);
     });
 
-    testWidgets('AnimatedKeyboardPadding animates to the new padding',
-        (tester) async {
+    testWidgets('AnimatedKeyboardPadding animates to the new padding', (
+      tester,
+    ) async {
       final notifier = SmartKeyboardInsets.instance.metricsNotifier;
       await tester.pumpWidget(
         const AnimatedKeyboardPadding(child: SizedBox(key: Key('child'))),

@@ -39,12 +39,14 @@ export 'keyboard_padding.dart';
 /// ```
 class SmartKeyboardInsets {
   /// MethodChannel for one-time method calls like getCurrentMetrics.
-  static const MethodChannel _methodChannel =
-      MethodChannel('smart_keyboard_insets/method');
+  static const MethodChannel _methodChannel = MethodChannel(
+    'smart_keyboard_insets/method',
+  );
 
   /// EventChannel for continuous keyboard metric streaming.
-  static const EventChannel _eventChannel =
-      EventChannel('smart_keyboard_insets/event');
+  static const EventChannel _eventChannel = EventChannel(
+    'smart_keyboard_insets/event',
+  );
 
   /// Singleton instance.
   static SmartKeyboardInsets? _instance;
@@ -68,8 +70,9 @@ class SmartKeyboardInsets {
   static bool debugAutoSubscribeOnAnyPlatform = false;
 
   /// ValueNotifier for keyboard metrics, initialized with hidden state.
-  final ValueNotifier<KeyboardMetrics> _metricsNotifier =
-      ValueNotifier(KeyboardMetrics.hidden);
+  final ValueNotifier<KeyboardMetrics> _metricsNotifier = ValueNotifier(
+    KeyboardMetrics.hidden,
+  );
 
   /// Stream of keyboard metrics updates.
   ///
@@ -84,13 +87,16 @@ class SmartKeyboardInsets {
   Stream<KeyboardMetrics> get metricsStream {
     _metricsStream ??= _eventChannel
         .receiveBroadcastStream()
-        .map((event) =>
-            KeyboardMetrics.fromMap(Map<String, dynamic>.from(event as Map)))
+        .map(
+          (event) =>
+              KeyboardMetrics.fromMap(Map<String, dynamic>.from(event as Map)),
+        )
         .map((metrics) {
-      // Update the ValueNotifier with each new event
-      _metricsNotifier.value = metrics;
-      return metrics;
-    }).asBroadcastStream();
+          // Update the ValueNotifier with each new event
+          _metricsNotifier.value = metrics;
+          return metrics;
+        })
+        .asBroadcastStream();
     return _metricsStream!;
   }
 
@@ -112,7 +118,8 @@ class SmartKeyboardInsets {
     if (_notifierSubscription != null) return;
     // Other platforms (web, desktop, `flutter test`) have no native side, and
     // listening there would report a MissingPluginException.
-    final supported = debugAutoSubscribeOnAnyPlatform ||
+    final supported =
+        debugAutoSubscribeOnAnyPlatform ||
         (!kIsWeb && (Platform.isAndroid || Platform.isIOS));
     if (!supported) return;
     _notifierSubscription = metricsStream.listen(
@@ -130,8 +137,9 @@ class SmartKeyboardInsets {
   /// Returns [KeyboardMetrics.hidden] if the platform query fails.
   Future<KeyboardMetrics> getCurrentMetrics() async {
     try {
-      final result = await _methodChannel
-          .invokeMethod<Map<dynamic, dynamic>>('getCurrentMetrics');
+      final result = await _methodChannel.invokeMethod<Map<dynamic, dynamic>>(
+        'getCurrentMetrics',
+      );
       if (result != null) {
         return KeyboardMetrics.fromMap(Map<String, dynamic>.from(result));
       }

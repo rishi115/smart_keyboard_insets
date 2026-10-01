@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.0
+
+- **Fix:** Android apps using AGP 9 with built-in Kotlin (the default since Flutter 3.47) failed to build with this plugin. The plugin now uses built-in Kotlin instead of applying the Kotlin Gradle plugin, as described in Flutter's migration guide.
+- **Breaking:** requires Flutter 3.44 / Dart 3.12 or later. Apps on older Flutter versions keep resolving 0.2.0.
+- iOS podspec version now matches the package version.
+- Example app migrated to AGP 9 with built-in Kotlin.
+
 ## 0.2.0
 
 - **Fix:** `KeyboardPadding`, `AnimatedKeyboardPadding` and `metricsNotifier` now update on their own on Android and iOS. Previously they stayed at 0 unless something was listening to `metricsStream`.

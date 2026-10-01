@@ -6,18 +6,22 @@ import 'package:smart_keyboard_insets/smart_keyboard_insets.dart';
 // Kept in its own file: once started, the automatic subscription lives for
 // the rest of the test isolate.
 void main() {
-  testWidgets('KeyboardPadding updates without a manual stream listener',
-      (tester) async {
+  testWidgets('KeyboardPadding updates without a manual stream listener', (
+    tester,
+  ) async {
     late MockStreamHandlerEventSink events;
     tester.binding.defaultBinaryMessenger.setMockStreamHandler(
       const EventChannel('smart_keyboard_insets/event'),
-      MockStreamHandler.inline(onListen: (arguments, sink) {
-        events = sink;
-      }),
+      MockStreamHandler.inline(
+        onListen: (arguments, sink) {
+          events = sink;
+        },
+      ),
     );
     SmartKeyboardInsets.debugAutoSubscribeOnAnyPlatform = true;
     addTearDown(
-        () => SmartKeyboardInsets.debugAutoSubscribeOnAnyPlatform = false);
+      () => SmartKeyboardInsets.debugAutoSubscribeOnAnyPlatform = false,
+    );
 
     await tester.pumpWidget(
       const KeyboardPadding(child: SizedBox(key: Key('child'))),
@@ -32,10 +36,14 @@ void main() {
     await tester.runAsync(() => Future<void>.delayed(Duration.zero));
     await tester.pump();
 
-    final padding = tester.widget<Padding>(find
-        .ancestor(
-            of: find.byKey(const Key('child')), matching: find.byType(Padding))
-        .first);
+    final padding = tester.widget<Padding>(
+      find
+          .ancestor(
+            of: find.byKey(const Key('child')),
+            matching: find.byType(Padding),
+          )
+          .first,
+    );
     expect(padding.padding.resolve(TextDirection.ltr).bottom, 336);
   });
 }

@@ -41,7 +41,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  smart_keyboard_insets: ^0.2.0
+  smart_keyboard_insets: ^0.3.0
 ```
 
 ## Usage
@@ -125,6 +125,7 @@ The `KeyboardMetrics` class contains:
 |----------|-----------------|
 | Android | API 21 (Android 5.0) |
 | iOS | iOS 12.0 |
+| Flutter | 3.44 (use `^0.2.0` on older Flutter versions) |
 
 ## Important Notes
 
