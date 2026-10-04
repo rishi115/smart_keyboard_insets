@@ -27,6 +27,7 @@ void main() {
   });
 
   tearDown(() {
+    SmartKeyboardInsets.debugAutoSubscribeOnAnyPlatform = false;
     messenger.setMockMethodCallHandler(_methodChannel, null);
     messenger.setMockStreamHandler(_eventChannel, null);
   });
@@ -62,6 +63,9 @@ void main() {
   });
 
   group('getCurrentMetrics', () {
+    // These mock the native channels, which are only used on Android/iOS.
+    setUp(() => SmartKeyboardInsets.debugAutoSubscribeOnAnyPlatform = true);
+
     test('parses the platform result', () async {
       messenger.setMockMethodCallHandler(_methodChannel, (call) async {
         expect(call.method, 'getCurrentMetrics');
@@ -84,6 +88,7 @@ void main() {
   test(
     'metricsStream emits platform events and updates metricsNotifier',
     () async {
+      SmartKeyboardInsets.debugAutoSubscribeOnAnyPlatform = true;
       messenger.setMockStreamHandler(
         _eventChannel,
         MockStreamHandler.inline(

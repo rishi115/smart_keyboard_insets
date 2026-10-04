@@ -1,14 +1,17 @@
 /// Smart Keyboard Insets - A Flutter plugin for accurate keyboard height
-/// and safe area detection on Android and iOS.
+/// and safe area detection, native on Android and iOS, with a fallback based
+/// on Flutter's view metrics on web, macOS, Windows and Linux.
 library smart_keyboard_insets;
 
 import 'dart:async';
-import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import 'keyboard_metrics.dart';
+import 'src/native_platform.dart'
+    if (dart.library.js_interop) 'src/native_platform_web.dart';
+import 'src/view_metrics_fallback.dart';
 
 export 'animated_keyboard_padding.dart';
 export 'keyboard_metrics.dart';
@@ -58,16 +61,26 @@ class SmartKeyboardInsets {
   /// Private constructor for singleton pattern.
   SmartKeyboardInsets._();
 
-  /// Cached broadcast stream for keyboard metrics.
-  Stream<KeyboardMetrics>? _metricsStream;
+  /// Cached broadcast stream of native keyboard events (Android, iOS).
+  Stream<KeyboardMetrics>? _nativeStream;
+
+  /// Cached broadcast stream from the view-metrics fallback (other platforms).
+  Stream<KeyboardMetrics>? _fallbackStream;
+
+  final ViewMetricsFallback _fallback = ViewMetricsFallback();
 
   /// Internal subscription that keeps [metricsNotifier] up to date.
   StreamSubscription<KeyboardMetrics>? _notifierSubscription;
 
-  /// Lets tests turn on the automatic [metricsStream] subscription that
-  /// [metricsNotifier] normally only starts on Android and iOS.
+  /// Lets tests use the native method and event channels (normally only
+  /// used on Android and iOS) on any platform, e.g. with mocked channels.
   @visibleForTesting
   static bool debugAutoSubscribeOnAnyPlatform = false;
+
+  /// Whether to use the native Android/iOS implementation rather than the
+  /// view-metrics fallback used on web, macOS, Windows and Linux.
+  static bool get _useNativeChannels =>
+      debugAutoSubscribeOnAnyPlatform || isNativePlatform;
 
   /// ValueNotifier for keyboard metrics, initialized with hidden state.
   final ValueNotifier<KeyboardMetrics> _metricsNotifier = ValueNotifier(
@@ -84,20 +97,29 @@ class SmartKeyboardInsets {
   /// When all listeners cancel, platform listeners are removed.
   ///
   /// The stream also updates [metricsNotifier] with each new event.
+  ///
+  /// On web, macOS, Windows and Linux the metrics come from Flutter's view
+  /// metrics instead: the keyboard height follows the on-screen keyboard
+  /// frame by frame and is usually 0 on desktop.
   Stream<KeyboardMetrics> get metricsStream {
-    _metricsStream ??= _eventChannel
+    if (!_useNativeChannels) {
+      return _fallbackStream ??= _fallback.stream
+          .map(_updateNotifier)
+          .asBroadcastStream();
+    }
+    return _nativeStream ??= _eventChannel
         .receiveBroadcastStream()
         .map(
           (event) =>
               KeyboardMetrics.fromMap(Map<String, dynamic>.from(event as Map)),
         )
-        .map((metrics) {
-          // Update the ValueNotifier with each new event
-          _metricsNotifier.value = metrics;
-          return metrics;
-        })
+        .map(_updateNotifier)
         .asBroadcastStream();
-    return _metricsStream!;
+  }
+
+  KeyboardMetrics _updateNotifier(KeyboardMetrics metrics) {
+    _metricsNotifier.value = metrics;
+    return metrics;
   }
 
   /// ValueNotifier for keyboard metrics.
@@ -105,8 +127,8 @@ class SmartKeyboardInsets {
   /// Use this with [ValueListenableBuilder] for efficient widget rebuilds
   /// when keyboard metrics change.
   ///
-  /// The notifier is initialized with [KeyboardMetrics.hidden]. On Android
-  /// and iOS, the first access starts listening for keyboard events, so the
+  /// The notifier is initialized with [KeyboardMetrics.hidden]. The first
+  /// access starts listening for keyboard changes on every platform, so the
   /// notifier (and [KeyboardPadding] / [AnimatedKeyboardPadding], which read
   /// it) stays up to date without subscribing to [metricsStream] yourself.
   ValueNotifier<KeyboardMetrics> get metricsNotifier {
@@ -116,12 +138,6 @@ class SmartKeyboardInsets {
 
   void _ensureNotifierSubscription() {
     if (_notifierSubscription != null) return;
-    // Other platforms (web, desktop, `flutter test`) have no native side, and
-    // listening there would report a MissingPluginException.
-    final supported =
-        debugAutoSubscribeOnAnyPlatform ||
-        (!kIsWeb && (Platform.isAndroid || Platform.isIOS));
-    if (!supported) return;
     _notifierSubscription = metricsStream.listen(
       null,
       onError: (Object error) =>
@@ -134,8 +150,11 @@ class SmartKeyboardInsets {
   /// This method queries the platform for the current keyboard state
   /// without subscribing to the stream.
   ///
+  /// On web, macOS, Windows and Linux it returns the current view metrics.
+  ///
   /// Returns [KeyboardMetrics.hidden] if the platform query fails.
   Future<KeyboardMetrics> getCurrentMetrics() async {
+    if (!_useNativeChannels) return _fallback.read();
     try {
       final result = await _methodChannel.invokeMethod<Map<dynamic, dynamic>>(
         'getCurrentMetrics',

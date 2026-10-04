@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.1
+
+- Web, macOS, Windows and Linux support: on these platforms the keyboard metrics come from Flutter's view metrics, so `metricsStream`, `metricsNotifier`, `getCurrentMetrics()` and the padding widgets work there too (Android and iOS keep the native implementation).
+- Swift Package Manager support for iOS (CocoaPods still works).
+- iOS minimum is now 13.0, matching Flutter's own minimum.
+- Clearer pub.dev description.
+
 ## 0.3.0
 
 - **Fix:** Android apps using AGP 9 with built-in Kotlin (the default since Flutter 3.47) failed to build with this plugin. The plugin now uses built-in Kotlin instead of applying the Kotlin Gradle plugin, as described in Flutter's migration guide.

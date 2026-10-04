@@ -73,3 +73,7 @@ coverage/
 
 # Lock files (optional - remove if you want to track)
 pubspec.lock
+
+# Swift Package Manager
+.build/
+.swiftpm/

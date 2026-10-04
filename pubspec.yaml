@@ -1,6 +1,6 @@
 name: smart_keyboard_insets
-description: A Flutter plugin that provides accurate keyboard height and safe area bottom inset detection on Android and iOS. Perfect for chat apps.
-version: 0.3.0
+description: Accurate keyboard height and safe-area insets for Flutter, native on Android & iOS. Size emoji and sticker panels to the keyboard and keep chat composers above it.
+version: 0.3.1
 homepage: https://github.com/rishi115/smart_keyboard_insets
 repository: https://github.com/rishi115/smart_keyboard_insets
 issue_tracker: https://github.com/rishi115/smart_keyboard_insets/issues
@@ -23,6 +23,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_web_plugins:
+    sdk: flutter
 
 dev_dependencies:
   flutter_test:
@@ -37,3 +39,15 @@ flutter:
         pluginClass: SmartKeyboardInsetsPlugin
       ios:
         pluginClass: SmartKeyboardInsetsPlugin
+      web:
+        pluginClass: SmartKeyboardInsetsWebPlugin
+        fileName: src/web_plugin.dart
+      macos:
+        dartPluginClass: SmartKeyboardInsetsFallbackPlugin
+        fileName: src/fallback_plugin.dart
+      windows:
+        dartPluginClass: SmartKeyboardInsetsFallbackPlugin
+        fileName: src/fallback_plugin.dart
+      linux:
+        dartPluginClass: SmartKeyboardInsetsFallbackPlugin
+        fileName: src/fallback_plugin.dart

@@ -20,8 +20,9 @@ void main() {
   late MockStreamHandlerEventSink keyboardEvents;
 
   setUp(() {
-    // The plugin is a singleton, so clear state left by the previous test.
-    SmartKeyboardInsets.instance.metricsNotifier.value = KeyboardMetrics.hidden;
+    // Drive the plugin through its native channels (mocked below) rather
+    // than the view-metrics fallback used off Android/iOS.
+    SmartKeyboardInsets.debugAutoSubscribeOnAnyPlatform = true;
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockStreamHandler(
           eventChannel,
@@ -31,6 +32,8 @@ void main() {
             },
           ),
         );
+    // The plugin is a singleton, so clear state left by the previous test.
+    SmartKeyboardInsets.instance.metricsNotifier.value = KeyboardMetrics.hidden;
   });
 
   /// Sends a keyboard event the way the native side would and lets it arrive.

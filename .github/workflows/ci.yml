@@ -73,6 +73,13 @@ jobs:
         with:
           channel: stable
           cache: true
-      - name: Build for simulator
+      - name: Build for simulator (Swift Package Manager)
         working-directory: example
         run: flutter build ios --simulator --debug
+
+      - name: Build for simulator (CocoaPods)
+        working-directory: example
+        run: |
+          flutter config --no-enable-swift-package-manager
+          flutter clean
+          flutter build ios --simulator --debug

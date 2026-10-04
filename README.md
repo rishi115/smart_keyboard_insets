@@ -7,7 +7,7 @@
 [![platform](https://img.shields.io/badge/platform-android%20%7C%20ios-blue)](https://pub.dev/packages/smart_keyboard_insets)
 [![GitHub](https://img.shields.io/github/license/rishi115/smart_keyboard_insets)](https://github.com/rishi115/smart_keyboard_insets/blob/main/LICENSE)
 
-A Flutter plugin that provides accurate keyboard height and safe area bottom inset detection on Android and iOS. Built for chat apps: composers that sit right on top of the keyboard, and sticker/emoji panels that open at exactly the keyboard's height.
+A Flutter plugin that provides accurate keyboard height and safe area bottom inset detection, native on Android and iOS, with a fallback on web and desktop. Built for chat apps: composers that sit right on top of the keyboard, and sticker/emoji panels that open at exactly the keyboard's height.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/rishi115/smart_keyboard_insets/main/doc/demo.gif" alt="Chat composer following the keyboard, then swapping to a sticker panel of the same height" width="300">
@@ -41,7 +41,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  smart_keyboard_insets: ^0.3.0
+  smart_keyboard_insets: ^0.3.1
 ```
 
 ## Usage
@@ -124,7 +124,8 @@ The `KeyboardMetrics` class contains:
 | Platform | Minimum Version |
 |----------|-----------------|
 | Android | API 21 (Android 5.0) |
-| iOS | iOS 12.0 |
+| iOS | iOS 13.0 |
+| Web, macOS, Windows, Linux | Supported through Flutter's view metrics (the height follows the on-screen keyboard frame by frame; usually 0 on desktop) |
 | Flutter | 3.44 (use `^0.2.0` on older Flutter versions) |
 
 ## Important Notes
