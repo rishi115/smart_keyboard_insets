@@ -77,9 +77,20 @@ jobs:
         working-directory: example
         run: flutter build ios --simulator --debug
 
-      - name: Build for simulator (CocoaPods)
+  # Separate job so the CocoaPods build starts from the committed (pre-SPM)
+  # Xcode project; an SPM build in the same checkout migrates it.
+  build-ios-cocoapods:
+    name: Build example (iOS, CocoaPods)
+    needs: analyze-and-test
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Turn off Swift Package Manager
+        run: flutter config --no-enable-swift-package-manager
+      - name: Build for simulator
         working-directory: example
-        run: |
-          flutter config --no-enable-swift-package-manager
-          flutter clean
-          flutter build ios --simulator --debug
+        run: flutter build ios --simulator --debug
