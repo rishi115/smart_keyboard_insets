@@ -44,10 +44,7 @@ flutter:
         fileName: src/web_plugin.dart
       macos:
         dartPluginClass: SmartKeyboardInsetsFallbackPlugin
-        fileName: src/fallback_plugin.dart
       windows:
         dartPluginClass: SmartKeyboardInsetsFallbackPlugin
-        fileName: src/fallback_plugin.dart
       linux:
         dartPluginClass: SmartKeyboardInsetsFallbackPlugin
-        fileName: src/fallback_plugin.dart

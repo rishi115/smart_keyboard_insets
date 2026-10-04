@@ -16,6 +16,7 @@ import 'src/view_metrics_fallback.dart';
 export 'animated_keyboard_padding.dart';
 export 'keyboard_metrics.dart';
 export 'keyboard_padding.dart';
+export 'src/fallback_plugin.dart' show SmartKeyboardInsetsFallbackPlugin;
 
 /// Main plugin class providing keyboard metrics APIs.
 ///
